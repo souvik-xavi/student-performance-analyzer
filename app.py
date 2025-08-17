@@ -12,7 +12,7 @@ app = Flask(__name__)
 with open("model.pkl", "rb") as f:
     model = pickle.load(f)
 
-# Load saved accuracy
+# Load saved accuracy (if exists)
 try:
     with open("accuracy.pkl", "rb") as f:
         accuracy = pickle.load(f)
@@ -36,28 +36,24 @@ def generate_graphs(df):
     for old in os.listdir(graph_folder):
         os.remove(os.path.join(graph_folder, old))
 
-    # 📊 Graph 1: Distribution of each subject
-    subjects = ["math score", "reading score", "writing score"]
+    subjects = [
+        ("math score", "Math Score"),
+        ("reading score", "Reading Score"),
+        ("writing score", "Writing Score"),
+        ("Predicted Result", "Predicted Result")
+    ]
 
-    for subject in subjects:
+    for col, pretty_name in subjects:
         plt.figure(figsize=(6, 4))
-        plt.bar(df.index, df[subject])
+        plt.bar(df.index, df[col])
         plt.xlabel("Students")
-        plt.ylabel(subject)
-        plt.title(f"{subject} Distribution")
+        plt.ylabel(pretty_name)
+        plt.title(f"{pretty_name} Distribution")
         plt.tight_layout()
-        plt.savefig(os.path.join(graph_folder, f"{subject}.png"))
-        plt.close()
 
-    # 📊 Graph 2: Pass vs Fail distribution
-    plt.figure(figsize=(5, 4))
-    df["Predicted Result"].value_counts().plot(kind="bar", color=["green", "red"])
-    plt.title("Pass vs Fail Prediction")
-    plt.xlabel("1 = Pass, 0 = Fail")
-    plt.ylabel("Count")
-    plt.tight_layout()
-    plt.savefig(os.path.join(graph_folder, "pass_fail.png"))
-    plt.close()
+        graph_path = os.path.join(graph_folder, f"{col}.png")
+        plt.savefig(graph_path)
+        plt.close()
 
 
 @app.route("/")
@@ -77,12 +73,13 @@ def upload():
     # Read CSV
     df = pd.read_csv(file)
 
-    # Rename uploaded columns (map to training dataset)
+    # Normalize column names to lowercase internally
     df.rename(
         columns={
             "Math": "math score",
             "Science": "reading score",
             "English": "writing score",
+            "Name": "name"
         },
         inplace=True,
     )
@@ -90,8 +87,17 @@ def upload():
     # Predictions
     df = predict_with_model(df)
 
-    # Generate graphs
+    # Generate graphs (uses lowercase col names)
     generate_graphs(df)
+
+    # Format columns nicely for display only
+    df.rename(columns={
+        "name": "Name",
+        "math score": "Math Score",
+        "reading score": "Reading Score",
+        "writing score": "Writing Score",
+        "Predicted Result": "Predicted Result"
+    }, inplace=True)
 
     # Collect graph filenames
     graphs = [
@@ -101,7 +107,7 @@ def upload():
     return render_template(
         "result.html",
         tables=df.to_html(classes="table table-bordered", index=False),
-        accuracy=f"{accuracy:.2f}%" if accuracy else "N/A",
+        accuracy=accuracy if accuracy else "N/A",
         graphs=graphs,
     )
 
