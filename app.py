@@ -4,9 +4,7 @@ import pandas as pd
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from flask import Flask, render_template, request, redirect, url_for
-
-
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
@@ -14,7 +12,7 @@ app = Flask(__name__)
 with open("model.pkl", "rb") as f:
     model = pickle.load(f)
 
-# Load saved accuracy (if exists)
+# Load saved accuracy
 try:
     with open("accuracy.pkl", "rb") as f:
         accuracy = pickle.load(f)
@@ -38,7 +36,8 @@ def generate_graphs(df):
     for old in os.listdir(graph_folder):
         os.remove(os.path.join(graph_folder, old))
 
-    subjects = ["math score", "reading score", "writing score", "Predicted Result"]
+    # 📊 Graph 1: Distribution of each subject
+    subjects = ["math score", "reading score", "writing score"]
 
     for subject in subjects:
         plt.figure(figsize=(6, 4))
@@ -47,10 +46,18 @@ def generate_graphs(df):
         plt.ylabel(subject)
         plt.title(f"{subject} Distribution")
         plt.tight_layout()
-
-        graph_path = os.path.join(graph_folder, f"{subject}.png")
-        plt.savefig(graph_path)
+        plt.savefig(os.path.join(graph_folder, f"{subject}.png"))
         plt.close()
+
+    # 📊 Graph 2: Pass vs Fail distribution
+    plt.figure(figsize=(5, 4))
+    df["Predicted Result"].value_counts().plot(kind="bar", color=["green", "red"])
+    plt.title("Pass vs Fail Prediction")
+    plt.xlabel("1 = Pass, 0 = Fail")
+    plt.ylabel("Count")
+    plt.tight_layout()
+    plt.savefig(os.path.join(graph_folder, "pass_fail.png"))
+    plt.close()
 
 
 @app.route("/")
@@ -94,7 +101,7 @@ def upload():
     return render_template(
         "result.html",
         tables=df.to_html(classes="table table-bordered", index=False),
-        accuracy=accuracy if accuracy else "N/A",
+        accuracy=f"{accuracy:.2f}%" if accuracy else "N/A",
         graphs=graphs,
     )
 
