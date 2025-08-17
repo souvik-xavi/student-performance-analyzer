@@ -64,16 +64,33 @@ def home():
 @app.route("/upload", methods=["POST"])
 def upload():
     if "file" not in request.files:
-        return "No file uploaded", 400
+        return render_template("index.html", error="No file uploaded")
 
     file = request.files["file"]
     if file.filename == "":
-        return "No file selected", 400
+        return render_template("index.html", error="No file selected")
 
-    # Read CSV
-    df = pd.read_csv(file)
+    # ✅ Validate extension
+    if not file.filename.lower().endswith(".csv"):
+        return render_template("index.html", error="Invalid file type. Please upload a CSV file.")
 
-    # Normalize column names to lowercase internally
+    try:
+        # Read CSV
+        df = pd.read_csv(file)
+    except Exception:
+        return render_template("index.html", error="Could not read the CSV file. Please check the format.")
+
+    # ✅ Required fields (before renaming)
+    required_fields = ["Math", "Science", "English", "Name"]
+    missing_fields = [col for col in required_fields if col not in df.columns]
+
+    if missing_fields:
+        return render_template(
+            "index.html",
+            error=f"Invalid format. Missing fields: {', '.join(missing_fields)}"
+        )
+
+    # Normalize column names internally
     df.rename(
         columns={
             "Math": "math score",
@@ -87,10 +104,10 @@ def upload():
     # Predictions
     df = predict_with_model(df)
 
-    # Generate graphs (uses lowercase col names)
+    # Generate graphs
     generate_graphs(df)
 
-    # Format columns nicely for display only
+    # Format columns for display
     df.rename(columns={
         "name": "Name",
         "math score": "Math Score",
@@ -111,6 +128,7 @@ def upload():
         graphs=graphs,
     )
 
+    
 
 if __name__ == "__main__":
     app.run(debug=True)

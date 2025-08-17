@@ -1,22 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
 
-    <div class="container d-flex justify-content-center align-items-center" style="height: 75vh;">
-        <div class="card shadow-lg p-4 rounded-4" style="max-width: 500px; width: 100%;">
-            <h2 class="text-center text-primary mb-4">📊 Student Performance Analyzer</h2>
-            
-            <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
-                <div class="mb-3">
-                    <label for="file" class="form-label fw-bold">Upload Marks CSV</label>
-                    <input type="file" class="form-control" id="file" name="file" required>
-                </div>
-                
-                <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-lg">Upload & Analyze</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    {% endblock %}
-    <!-- Bootstrap JS -->
+<div class="container d-flex justify-content-center align-items-center" style="height: 75vh;">
+    <div class="card shadow-lg p-4 rounded-4" style="max-width: 500px; width: 100%;">
+        <h2 class="text-center text-primary mb-4">📊 Student Performance Analyzer</h2>
 
+        <form action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+            <div class="mb-3">
+                <label for="file" class="form-label fw-bold">Upload Marks CSV</label>
+                {% if error %}
+                <div style="color: red; font-weight: bold; margin: 10px 0;">
+                    {{ error }}
+                </div>
+                {% endif %}
+                <input type="file" class="form-control" id="file" name="file" required>
+            </div>
+
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">Upload & Analyze</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+<!-- Bootstrap JS -->
