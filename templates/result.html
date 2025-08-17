@@ -1,25 +1,49 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Analysis Result</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-</head>
-<body class="container mt-5">
-    <h2>📊 Analysis Result</h2>
-    <p><strong>Model Accuracy:</strong> {{ accuracy }}%</p>
+{% extends "base.html" %}
+{% block content %}
 
-    <h4>Data Table</h4>
-    {{ tables|safe }}
+    <div class="container py-5">
+        <div class="card shadow-lg p-4 rounded-4">
+            <h2 class="text-center text-success mb-3">📊 Analysis Result</h2>
+            <p class="text-center fs-5">
+                <strong>Model Accuracy:</strong> 
+                <span class="badge bg-primary">{{ accuracy }}</span>
+            </p>
 
-    <h4>Graphs</h4>
-    <div class="row">
-        {% for graph in graphs %}
-        <div class="col-md-4 mb-3">
-            <img src="{{ url_for('static', filename='graphs/' + graph) }}" class="img-fluid">
+            <!-- Data Table -->
+            <div class="mt-4">
+                <h4 class="text-secondary">📋 Data Table</h4>
+                <div class="table-responsive">
+                    {{ tables|safe }}
+                </div>
+            </div>
+
+            <!-- Graphs Section -->
+            <div class="mt-5">
+                <h4 class="text-secondary">📈 Graphs</h4>
+                <div class="row g-4">
+                    {% for graph in graphs %}
+                    <div class="col-md-4 col-sm-6">
+                        <div class="card shadow-sm border-0 h-100">
+                            <div class="ratio ratio-4x3"> <!-- keeps equal size ratio -->
+                                <img src="{{ url_for('static', filename='graphs/' + graph) }}" 
+                                     class="card-img-top rounded-3 object-fit-contain p-2" alt="Graph">
+                            </div>
+                            <div class="card-body text-center">
+                                <small class="text-muted">{{ graph.split('.')[0].replace('_', ' ').title() }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="text-center mt-4">
+                <a href="/" class="btn btn-secondary btn-lg">⬅ Upload Another File</a>
+            </div>
         </div>
-        {% endfor %}
     </div>
 
-    <a href="/" class="btn btn-secondary mt-3">Upload Another File</a>
-</body>
-</html>
+    {% endblock %}
+
+
